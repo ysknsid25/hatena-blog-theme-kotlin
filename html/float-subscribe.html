@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+    </head>
+    <body>
+        <div class="float-btn-group">
+            <span class="hb-float-item">
+                <a
+                    href="https://b.hatena.ne.jp/entry/"
+                    class="hb-float-btn"
+                    id="hb-float-link"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title="このエントリーをはてなブックマークに追加"
+                >
+                    B!
+                    <span class="hb-chip" id="hb-count"></span>
+                </a>
+            </span>
+            <!--
+            <a
+                href="https://github.com/sponsors/ysknsid25"
+                class="sp-float-btn"
+                target="_blank"
+                rel="noopener noreferrer"
+                title="スポンサーになる"
+            >
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    aria-hidden="true"
+                >
+                    <path
+                        d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+                    />
+                </svg>
+            </a>
+            -->
+            <a
+                href="https://blog.hatena.ne.jp/ysknsid25/karanohako.hatenablog.jp/subscribe?utm_source=blogs_entry_footer&utm_campaign=subscribe_blog&utm_medium=button&utm_content=float"
+                class="reader-float-btn"
+            >
+                読者になりませんか？👀
+            </a>
+        </div>
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                const targets = document.querySelectorAll(
+                    '[name="subscribe-original"], .hatena-module-profile, .hatena-module-category, .hatena-module-archive, .hatena-module-links, .hatena-module-recent-entries',
+                );
+                const group = document.querySelector(".float-btn-group");
+                const hbItem = document.querySelector(".hb-float-item");
+                const hbLink = document.getElementById("hb-float-link");
+                const hbCount = document.getElementById("hb-count");
+                const visibleElements = new Set();
+
+                const isEntryPage =
+                    document.querySelectorAll(".entry").length === 1;
+
+                if (hbItem && isEntryPage) {
+                    hbItem.classList.add("entry-visible");
+
+                    // ブックマークリンクのURLを現在ページに設定
+                    const pageUrl = window.location.href;
+                    if (hbLink) {
+                        hbLink.href =
+                            "https://b.hatena.ne.jp/entry/s/" +
+                            pageUrl.replace(/^https?:\/\//, "");
+                    }
+
+                    // JSONP でブックマーク数を取得
+                    const cbName = "hbCb_" + Date.now();
+                    window[cbName] = function (data) {
+                        if (data && data.count > 0 && hbCount) {
+                            hbCount.textContent = data.count;
+                            hbCount.classList.add("visible");
+                        }
+                        delete window[cbName];
+                        const s = document.getElementById("hb-js");
+                        if (s) s.remove();
+                    };
+                    const script = document.createElement("script");
+                    script.id = "hb-js";
+                    script.src =
+                        "https://b.hatena.ne.jp/entry/jsonlite/?url=" +
+                        encodeURIComponent(pageUrl) +
+                        "&callback=" +
+                        cbName;
+                    document.head.appendChild(script);
+                }
+
+                const showButtons = () => group?.classList.add("visible");
+                const hideButtons = () => group?.classList.remove("visible");
+
+                if (targets.length > 0 && group) {
+                    const observer = new IntersectionObserver(
+                        (entries) => {
+                            entries.forEach((entry) => {
+                                if (entry.isIntersecting) {
+                                    visibleElements.add(entry.target);
+                                } else {
+                                    visibleElements.delete(entry.target);
+                                }
+                            });
+
+                            if (visibleElements.size > 0) {
+                                hideButtons();
+                            } else {
+                                showButtons();
+                            }
+                        },
+                        { threshold: 0 },
+                    );
+
+                    targets.forEach((el) => observer.observe(el));
+                } else if (group) {
+                    showButtons();
+                }
+            });
+        </script>
+    </body>
+</html>
